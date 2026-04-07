@@ -27,6 +27,9 @@ Restart service
 systemctl daemon-reload
 
 systemctl restart genieacs-cwmp
+
 systemctl restart genieacs-nbi
+
 systemctl restart genieacs-ui
+
 systemctl restart genieacs-fs
