@@ -2,18 +2,28 @@
 
 echo "=== INSTALL GENIEACS AUTO FINAL ==="
 
+WORKDIR="/root/genieacs-auto"
+
+# =========================
+# DOWNLOAD FILE DARI GITHUB
+# =========================
+cd /root
+rm -rf genieacs-auto
+git clone https://github.com/Ozy021/genieacs-auto.git
+cd $WORKDIR
+
 # =========================
 # UPDATE SYSTEM
 # =========================
 apt update -y && apt upgrade -y
 
 # =========================
-# INSTALL BASIC
+# BASIC PACKAGE
 # =========================
-apt install -y curl gnupg build-essential software-properties-common
+apt install -y curl gnupg build-essential software-properties-common git
 
 # =========================
-# INSTALL MONGODB (AUTO FIX)
+# INSTALL MONGODB (SAFE)
 # =========================
 if ! command -v mongod &> /dev/null
 then
@@ -35,7 +45,7 @@ apt install -y nodejs
 npm install -g genieacs
 
 # =========================
-# CREATE USER
+# USER
 # =========================
 useradd -r -s /bin/false genieacs 2>/dev/null
 
@@ -49,22 +59,22 @@ mkdir -p /var/lib/genieacs-log
 # =========================
 # COPY CONFIG
 # =========================
-cp genieacs.env /opt/genieacs/genieacs.env
+cp $WORKDIR/genieacs.env /opt/genieacs/genieacs.env
 
 # =========================
-# COPY EXT (SAFE)
+# COPY EXT
 # =========================
-if [ -d "ext" ]; then
-  cp -r ext/* /opt/genieacs/ext/
+if [ -d "$WORKDIR/ext" ]; then
+  cp -r $WORKDIR/ext/* /opt/genieacs/ext/
 fi
 
 # =========================
-# COPY LOGO (AUTO DETECT UNIVERSAL)
+# COPY LOGO (AUTO DETECT)
 # =========================
 LOGO_FILE=$(find /usr /usr/local -name "logo-*.svg" 2>/dev/null | grep genieacs | head -n 1)
 
 if [ -n "$LOGO_FILE" ]; then
-  cp logo.svg "$LOGO_FILE"
+  cp $WORKDIR/logo.svg "$LOGO_FILE"
 fi
 
 # =========================
@@ -124,9 +134,6 @@ systemctl restart genieacs-nbi
 systemctl restart genieacs-ui
 systemctl restart genieacs-fs
 
-# =========================
-# DONE
-# =========================
 echo "====================================="
 echo "INSTALL BERHASIL ✅"
 echo "Akses: http://IP:3000"
