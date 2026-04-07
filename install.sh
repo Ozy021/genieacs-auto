@@ -1,44 +1,40 @@
 #!/bin/bash
 
-echo "=== INSTALL GENIEACS + MONGODB AUTO ==="
+echo "=== INSTALL GENIEACS CUSTOM ==="
 
 apt update -y && apt upgrade -y
-
-apt install -y curl gnupg build-essential
+apt install -y curl gnupg build-essential mongodb
 
 curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 apt install -y nodejs
 
-apt install -y mongodb
 systemctl enable mongodb
 systemctl start mongodb
 
 npm install -g genieacs
 
-useradd -r -s /bin/false genieacs
+useradd -r -s /bin/false genieacs 2>/dev/null
 
 mkdir -p /opt/genieacs/ext
 mkdir -p /var/log/genieacs
 mkdir -p /var/lib/genieacs-log
 
+# restore config
+cp genieacs.env /opt/genieacs/genieacs.env
+
+# restore ext
+cp -r ext/* /opt/genieacs/ext/
+
+# restore logo (auto detect)
+LOGO_FILE=$(find /usr/lib/node_modules/genieacs/ -name "logo-*.svg" | head -n 1)
+
+if [ -n "$LOGO_FILE" ]; then
+  cp logo.svg "$LOGO_FILE"
+fi
+
 chown -R genieacs:genieacs /opt/genieacs
 chown -R genieacs:genieacs /var/log/genieacs
 chown -R genieacs:genieacs /var/lib/genieacs-log
-
-cat <<EOF > /opt/genieacs/genieacs.env
-GENIEACS_CWMP_ACCESS_LOG_FILE=/var/log/genieacs/genieacs-cwmp-access.log
-GENIEACS_NBI_ACCESS_LOG_FILE=/var/log/genieacs/genieacs-nbi-access.log
-GENIEACS_FS_ACCESS_LOG_FILE=/var/log/genieacs/genieacs-fs-access.log
-GENIEACS_UI_ACCESS_LOG_FILE=/var/log/genieacs/genieacs-ui-access.log
-GENIEACS_DEBUG_FILE=/var/log/genieacs/genieacs-debug.yaml
-
-GENIEACS_EXT_DIR=/opt/genieacs/ext
-NODE_OPTIONS=--enable-source-maps
-
-GENIEACS_MONGODB_CONNECTION_URL=mongodb://127.0.0.1/genieacs
-
-GENIEACS_UI_JWT_SECRET=CHANGE_ME_SECRET
-EOF
 
 create_service () {
 cat <<EOF > /etc/systemd/system/genieacs-$1.service
@@ -76,10 +72,9 @@ systemctl enable genieacs-nbi
 systemctl enable genieacs-ui
 systemctl enable genieacs-fs
 
-systemctl start genieacs-cwmp
-systemctl start genieacs-nbi
-systemctl start genieacs-ui
-systemctl start genieacs-fs
+systemctl restart genieacs-cwmp
+systemctl restart genieacs-nbi
+systemctl restart genieacs-ui
+systemctl restart genieacs-fs
 
-echo "=== INSTALL SELESAI ==="
-echo "Akses UI: http://IP:3000"
+echo "=== SELESAI ==="
