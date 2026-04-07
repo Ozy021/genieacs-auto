@@ -6,15 +6,17 @@ echo "=== INSTALL GENIEACS CUSTOM ==="
 apt update -y && apt upgrade -y
 
 # INSTALL DEPENDENCY
-apt install -y curl gnupg build-essential mongodb
+apt install -y curl gnupg build-essential
+
+# INSTALL MONGODB (AMAN)
+apt install -y mongodb || apt install -y mongodb-server || true
+
+systemctl enable mongodb || true
+systemctl start mongodb || true
 
 # INSTALL NODEJS
 curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 apt install -y nodejs
-
-# START MONGODB
-systemctl enable mongodb
-systemctl start mongodb
 
 # INSTALL GENIEACS
 npm install -g genieacs
@@ -35,8 +37,8 @@ if [ -d "ext" ]; then
   cp -r ext/* /opt/genieacs/ext/
 fi
 
-# RESTORE LOGO (AUTO DETECT)
-LOGO_FILE=$(find /usr/lib/node_modules/genieacs/ -name "logo-*.svg" | head -n 1)
+# RESTORE LOGO (AUTO DETECT UNIVERSAL)
+LOGO_FILE=$(find /usr /usr/local -name "logo-*.svg" 2>/dev/null | grep genieacs | head -n 1)
 
 if [ -n "$LOGO_FILE" ]; then
   cp logo.svg "$LOGO_FILE"
