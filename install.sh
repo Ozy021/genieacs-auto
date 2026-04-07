@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "=== INSTALL GENIEACS AUTO (FULL FIX) ==="
+echo "=== INSTALL GENIEACS AUTO FINAL ==="
 
 # =========================
 # UPDATE SYSTEM
@@ -8,20 +8,23 @@ echo "=== INSTALL GENIEACS AUTO (FULL FIX) ==="
 apt update -y && apt upgrade -y
 
 # =========================
-# INSTALL BASIC DEPENDENCY
+# INSTALL BASIC
 # =========================
 apt install -y curl gnupg build-essential software-properties-common
 
 # =========================
-# INSTALL MONGODB (AUTO FALLBACK)
+# INSTALL MONGODB (AUTO FIX)
 # =========================
-apt install -y mongodb || apt install -y mongodb-server || true
+if ! command -v mongod &> /dev/null
+then
+  apt install -y mongodb || apt install -y mongodb-server || true
+fi
 
 systemctl enable mongodb || true
 systemctl start mongodb || true
 
 # =========================
-# INSTALL NODEJS 18
+# INSTALL NODEJS
 # =========================
 curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 apt install -y nodejs
@@ -37,26 +40,26 @@ npm install -g genieacs
 useradd -r -s /bin/false genieacs 2>/dev/null
 
 # =========================
-# CREATE DIRECTORY
+# DIRECTORY
 # =========================
 mkdir -p /opt/genieacs/ext
 mkdir -p /var/log/genieacs
 mkdir -p /var/lib/genieacs-log
 
 # =========================
-# RESTORE CONFIG
+# COPY CONFIG
 # =========================
 cp genieacs.env /opt/genieacs/genieacs.env
 
 # =========================
-# RESTORE EXT (SAFE)
+# COPY EXT (SAFE)
 # =========================
 if [ -d "ext" ]; then
   cp -r ext/* /opt/genieacs/ext/
 fi
 
 # =========================
-# RESTORE LOGO (AUTO DETECT UNIVERSAL)
+# COPY LOGO (AUTO DETECT UNIVERSAL)
 # =========================
 LOGO_FILE=$(find /usr /usr/local -name "logo-*.svg" 2>/dev/null | grep genieacs | head -n 1)
 
@@ -65,14 +68,14 @@ if [ -n "$LOGO_FILE" ]; then
 fi
 
 # =========================
-# FIX PERMISSION
+# PERMISSION
 # =========================
 chown -R genieacs:genieacs /opt/genieacs
 chown -R genieacs:genieacs /var/log/genieacs
 chown -R genieacs:genieacs /var/lib/genieacs-log
 
 # =========================
-# CREATE SERVICE
+# SERVICE
 # =========================
 create_service () {
 cat <<EOF > /etc/systemd/system/genieacs-$1.service
@@ -97,7 +100,7 @@ create_service ui
 create_service fs
 
 # =========================
-# LOG OVERRIDE
+# LOG CONFIG
 # =========================
 mkdir -p /etc/systemd/system/genieacs-cwmp.service.d
 
@@ -122,9 +125,9 @@ systemctl restart genieacs-ui
 systemctl restart genieacs-fs
 
 # =========================
-# FINAL INFO
+# DONE
 # =========================
 echo "====================================="
-echo "INSTALL SELESAI ✅"
-echo "Akses UI: http://IP:3000"
+echo "INSTALL BERHASIL ✅"
+echo "Akses: http://IP:3000"
 echo "====================================="
